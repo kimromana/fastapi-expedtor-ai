@@ -79,6 +79,8 @@ logs/
 .env.*
 !env.example
 
+commands
+
 # -----------------------
 # Alembic
 #
