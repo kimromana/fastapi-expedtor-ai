@@ -1,0 +1,5 @@
+from fastapi import APIRouter
+from .dirs import router as dirs_router
+
+api_router = APIRouter()
+api_router.include_router(dirs_router)

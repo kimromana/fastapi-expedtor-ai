@@ -1,0 +1,20 @@
+[
+  { "code": "0057", "name": "АЗ", "country": "031" },
+  { "code": "0058", "name": "АРМ", "country": "051" },
+  { "code": "0098", "name": "Афганистан", "country": "004" },
+  { "code": "0021", "name": "БЧ", "country": "112" },
+  { "code": "0028", "name": "ГР", "country": "268" },
+  { "code": "0027", "name": "КЗХ", "country": "398" },
+  { "code": "0059", "name": "КРГ", "country": "417" },
+  { "code": "0024", "name": "ЛГ", "country": "440" },
+  { "code": "0025", "name": "ЛДЗ", "country": "428" },
+  { "code": "1111", "name": "Монголия", "country": "496" },
+  { "code": "0020", "name": "РЖД", "country": "643" },
+  { "code": "0066", "name": "ТДЖ", "country": "762" },
+  { "code": "0067", "name": "ТРК", "country": "795" },
+  { "code": "0022", "name": "УЗ", "country": "804" },
+  { "code": "0029", "name": "УТИ", "country": "860" },
+  { "code": "0099", "name": "Финляндия", "country": "246" },
+  { "code": "0023", "name": "ЧФМ", "country": "498" },
+  { "code": "0026", "name": "ЭВР", "country": "233" }
+]

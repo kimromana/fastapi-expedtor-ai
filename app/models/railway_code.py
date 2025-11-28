@@ -35,7 +35,7 @@ class RailwaySubcode(Base):
     name = Column(String(255), nullable=False)
     number = Column(Integer, default=0)
 
-    code_id = Column(Integer, ForeignKey("contractor.id", ondelete="RESTRICT"), nullable=False)
+    code_id = Column(Integer, ForeignKey("railway_code.id", ondelete="RESTRICT"), nullable=False)
 
     #Relationship
     code = relationship("RailwayCode")
