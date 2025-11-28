@@ -2,7 +2,6 @@
 # Объект - "Грузы по ЕТСНГ" виды грузов
 # ============================================================
 from sqlalchemy import Column, Integer, String, Boolean
-
 from app.db.base import Base
 
 
@@ -16,3 +15,6 @@ class Etsng(Base):
     mvrn = Column(Integer, nullable=True)
     cargo_class = Column(Integer, nullable=True)
     danger = Column(Boolean, default=False)
+
+    def __repr__(self):
+        return f"<{self.name} ({self.code})>"
