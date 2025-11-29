@@ -10,6 +10,6 @@ class Vat(Base):
     __tablename__ = "vat"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     rate = Column(Integer, default=0)
     guid_1c = Column(String(150), nullable=True)

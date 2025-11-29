@@ -9,6 +9,6 @@ class Gng(Base):
     __tablename__ = "gng"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(250), nullable=False)
-    code = Column(String(15), nullable=False)
+    name = Column(String(250), nullable=False, index=True)
+    code = Column(String(15), nullable=False, index=True)
     code_etsng = Column(String(15), nullable=False)

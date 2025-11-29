@@ -12,8 +12,8 @@ class Territory(Base):
     __tablename__ = "territory"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), nullable=False)
-    code = Column(String(4), nullable=False)
+    name = Column(String(50), nullable=False, index=True)
+    code = Column(String(4), nullable=False, index=True)
 
     country_id = Column(Integer, ForeignKey("country.id", ondelete="RESTRICT"), nullable=False)
 

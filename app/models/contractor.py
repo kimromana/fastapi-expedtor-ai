@@ -11,10 +11,10 @@ class Contractor(Base):
     __tablename__ = "contractor"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     full_name = Column(String(255), nullable=True)
     guid_1c = Column(String(150), nullable=True)
-    bin_iin = Column(String(25), nullable=True)
+    bin_iin = Column(String(25), nullable=True, index=True)
     is_legal = Column(Boolean, default=False)
     kbe = Column(String(3), nullable=True)
     legal_address = Column(String(255), nullable=True)

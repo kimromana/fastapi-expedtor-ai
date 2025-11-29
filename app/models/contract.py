@@ -11,7 +11,7 @@ class Contract(Base):
     __tablename__ = "contract"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     guid_1c = Column(String(150), nullable=True)
     number = Column(String(150), nullable=True)
     from_date = Column(Date, nullable=True)

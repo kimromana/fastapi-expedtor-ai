@@ -11,8 +11,8 @@ class Station(Base):
     __tablename__ = "station"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(200), nullable=False)
-    code = Column(String(6), nullable=False)
+    name = Column(String(200), nullable=False, index=True)
+    code = Column(String(6), nullable=False, index=True)
     latitude = Column(String(50), nullable=True)
     longitude = Column(String(50), nullable=True)
     paragraphs = Column(String(50), nullable=True)

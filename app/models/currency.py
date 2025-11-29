@@ -9,6 +9,6 @@ class Currency(Base):
     __tablename__ = "currency"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(250), nullable=False)
-    code = Column(String(3), nullable=False)
+    name = Column(String(250), nullable=False, index=True)
+    code = Column(String(3), nullable=False, index=True)
     guid_1c = Column(String(150), nullable=True)

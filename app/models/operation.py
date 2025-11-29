@@ -11,7 +11,7 @@ class Operation(Base):
     __tablename__ = "operation"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(200), nullable=False)
+    name = Column(String(200), nullable=False, index=True)
     code = Column(String(6), nullable=False)
     is_tariff = Column(Boolean, default=False)
 

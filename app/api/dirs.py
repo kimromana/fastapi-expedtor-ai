@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
-from app.services.load_dirs.directories import load_countries, load_territories, load_stations
+from app.services.load_dirs.directories import *
 
 router = APIRouter()
 
@@ -25,6 +25,30 @@ def download_territories(db: Session = Depends(get_db)):
 def download_stations(db: Session = Depends(get_db)):
     try:
         load_stations(db)
+        return {"message": "success"}
+    except Exception as e:
+        return {"message": str(e)}
+
+@router.post("/etsng", tags=["Directories"])
+def download_etsng(db: Session = Depends(get_db)):
+    try:
+        load_etsng(db)
+        return {"message": "success"}
+    except Exception as e:
+        return {"message": str(e)}
+
+@router.post("/gng", tags=["Directories"])
+def download_gng(db: Session = Depends(get_db)):
+    try:
+        load_gng(db)
+        return {"message": "success"}
+    except Exception as e:
+        return {"message": str(e)}
+
+@router.post("/wagon_type", tags=["Directories"])
+def download_wagon_type(db: Session = Depends(get_db)):
+    try:
+        load_wagon_type(db)
         return {"message": "success"}
     except Exception as e:
         return {"message": str(e)}

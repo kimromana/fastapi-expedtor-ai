@@ -10,5 +10,5 @@ class WagonType(Base):
     __tablename__ = "wagon_type"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     code = Column(String(3), nullable=True)

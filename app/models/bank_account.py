@@ -11,7 +11,7 @@ class BankAccount(Base):
     __tablename__ = "bank_account"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     guid_1c = Column(String(150), nullable=True)
     number = Column(String(150), nullable=True)
     bank_name = Column(String(255), nullable=True)

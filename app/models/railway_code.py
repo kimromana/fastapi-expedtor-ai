@@ -12,8 +12,8 @@ class RailwayCode(Base):
     __tablename__ = "railway_code"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
-    code = Column(String(150), nullable=True)
+    name = Column(String(255), nullable=False, index=True)
+    code = Column(String(150), nullable=True, index=True)
     is_transit = Column(Boolean, default=False)
     length = Column(Integer, default=7)
     prefix = Column(String(10), nullable=True)
