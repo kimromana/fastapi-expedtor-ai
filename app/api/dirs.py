@@ -52,3 +52,11 @@ def download_wagon_type(db: Session = Depends(get_db)):
         return {"message": "success"}
     except Exception as e:
         return {"message": str(e)}
+
+@router.post("/service_type", tags=["Directories"])
+def download_service_type(db: Session = Depends(get_db)):
+    try:
+        load_service_type(db)
+        return {"message": "success"}
+    except Exception as e:
+        return {"message": str(e)}

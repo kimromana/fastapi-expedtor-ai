@@ -4,6 +4,7 @@ from app.models.station import Station
 from app.models.etsng import Etsng
 from app.models.gng import Gng
 from app.models.wagon_type import WagonType
+from app.models.service_type import ServiceType
 import json
 import os
 
@@ -151,6 +152,29 @@ def load_wagon_type(db):
         # 2. Добавление нового объекта
         db.add(WagonType(
             code=item["code"],
+            name=item["name"]
+        ))
+
+    db.commit()
+
+def load_service_type(db):
+
+    dirs = [
+        {"name": "Экспедирование"},
+        {"name": "Предоставление ПС"},
+        {"name": "Экспедирование + Предоставление ПС"},
+        {"name": "Порожний возврат"},
+    ]
+
+    for item in dirs:
+
+        # 1. Проверка существования типа
+        exists = db.query(ServiceType).filter(ServiceType.name == item["name"]).first()
+        if exists:
+            continue
+
+        # 2. Добавление нового объекта
+        db.add(ServiceType(
             name=item["name"]
         ))
 
