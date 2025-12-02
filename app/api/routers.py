@@ -1,13 +1,41 @@
+import pkgutil
+import importlib
 from fastapi import APIRouter
+from sqlalchemy.orm import DeclarativeMeta
+
 from app.crud.router import crud_router
 
-from app.models.station import Station
-from app.models.vat import Vat
-from app.models.territory import Territory
-# и т.д.
 
-router = APIRouter()
+def is_model(obj) -> bool:
+    return (
+        isinstance(obj, DeclarativeMeta)
+        and hasattr(obj, "__tablename__")
+        and obj.__dict__.get("__abstract__", False) is False
+    )
 
-router.include_router(crud_router(Station))
-router.include_router(crud_router(Vat))
-router.include_router(crud_router(Territory))
+
+def load_all_models():
+    import app.models as models_pkg
+    models = []
+
+    for _, module_name, _ in pkgutil.iter_modules(models_pkg.__path__):
+        module = importlib.import_module(f"{models_pkg.__name__}.{module_name}")
+
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if is_model(attr):
+                models.append(attr)
+
+    return models
+
+
+def create_auto_router() -> APIRouter:
+    api = APIRouter()
+
+    for model in load_all_models():
+        api.include_router(crud_router(model))
+
+    return api
+
+
+router = create_auto_router()

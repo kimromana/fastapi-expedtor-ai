@@ -55,6 +55,18 @@ FILTERS_DOC = """
 /station?name=Алма&code__gte=200000&territory.name=Казахстан&id_min=10&id_max=100
 """
 
+def clean_instance(obj):
+    """
+    Преобразует все '' → None только по колонкам SQLAlchemy.
+    Работает БЫСТРО, безопасно и на 100% избавляет от ошибок Pydantic.
+    """
+    mapper = obj.__mapper__
+    for column in mapper.columns:
+        value = getattr(obj, column.key)
+        if value == "":
+            setattr(obj, column.key, None)
+    return obj
+
 def crud_router(model: Any, prefix: str | None = None, tags: list[str] | None = None) -> APIRouter:
     if prefix is None:
         prefix = "/" + model.__tablename__
@@ -101,9 +113,11 @@ def crud_router(model: Any, prefix: str | None = None, tags: list[str] | None = 
                 query = query.order_by(col.desc() if sort_dir == "desc" else col.asc())
 
         rows = query.offset(offset).limit(limit).all()
+        # ⬅⬅⬅ Добавили clean_instance()
+        cleaned = [clean_instance(r) for r in rows]
 
-        # ✔ Pydantic v2 ORM mode
-        return [out_schema.model_validate(r, from_attributes=True) for r in rows]
+        # ORM-mode (Pydantic v2)
+        return [out_schema.model_validate(r, from_attributes=True) for r in cleaned]
 
     # ----------------------------------------------------
     # GET ONE

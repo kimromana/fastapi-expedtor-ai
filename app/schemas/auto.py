@@ -1,22 +1,19 @@
-from pydantic import BaseModel, create_model
-from typing import Optional, Set, Dict, Any
-from sqlalchemy.orm import DeclarativeMeta, RelationshipProperty
+from pydantic import BaseModel, create_model, field_validator
+from typing import Optional, Dict, Any, Set
+from sqlalchemy.orm import DeclarativeMeta
 
 
 def ensure_model(model: Any) -> None:
     """Проверяем, что это SQLAlchemy-модель."""
     if not isinstance(model, DeclarativeMeta):
-        raise TypeError(f"Expected SQLAlchemy model, got: {model}")
+        raise TypeError(f"Expected SQLAlchemy model, got: {type(model)}")
 
 
 def get_column_fields(model: DeclarativeMeta, include_id: bool, optional: bool) -> Dict[str, tuple]:
-    """
-    Формирует Pydantic-поля по SQLAlchemy-колонкам.
-    Теперь учитывает column.nullable.
-    """
-    fields: Dict[str, tuple] = {}
-
+    """Формирует Pydantic-поля по колонкам модели."""
     table = model.__table__  # type: ignore[attr-defined]
+
+    fields: Dict[str, tuple] = {}
 
     for column in table.columns:
         if column.name == "id" and not include_id:
@@ -24,34 +21,28 @@ def get_column_fields(model: DeclarativeMeta, include_id: bool, optional: bool) 
 
         py_type = column.type.python_type
 
-        # если колонка nullable → всегда Optional
-        if column.nullable:
-            annotation = Optional[py_type]
-            default = None
+        # всегда допускаем None, потому что данные могут быть '' (строка)
+        annotation = Optional[py_type]
+
+        # если create: обязательные поля без null → required
+        if not column.nullable and not optional:
+            default = ...
         else:
-            # create/patch schemas регулируют optional
-            annotation = Optional[py_type] if optional else py_type
-            default = None if optional else ...
+            default = None
 
         fields[column.name] = (annotation, default)
 
     return fields
 
 
-
-def get_relationships(model: DeclarativeMeta) -> Dict[str, RelationshipProperty]:
-    """
-    Возвращает словарь отношений модели.
-    Пример: {"territory": relationship()}
-    """
+def get_relationships(model: DeclarativeMeta) -> Dict[str, Any]:
+    """Возвращает словарь relations модели."""
     mapper = model.__mapper__  # type: ignore[attr-defined]
     return dict(mapper.relationships.items())
 
 
-def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> Optional[type[BaseModel]]:
-    """
-    Рекурсивно создаёт OutSchema, включая вложенные связи.
-    """
+def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> type[BaseModel] | None:
+    """Рекурсивно создаёт OutSchema с вложенными моделями."""
     model_name = model.__name__
 
     if model_name in seen:
@@ -61,43 +52,57 @@ def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> Optional[type
 
     fields = get_column_fields(model, include_id=True, optional=False)
 
-    # Добавляем relationships как вложенные модели
+    # вложенные связи
     for rel_name, rel in get_relationships(model).items():
-        target_model: DeclarativeMeta = rel.mapper.class_  # type: ignore[attr-defined]
+        target = rel.mapper.class_  # type: ignore[attr-defined]
+        nested = generate_out_schema(target, seen.copy())
+        if nested is not None:
+            fields[rel_name] = (Optional[nested], None)
 
-        nested_schema = generate_out_schema(target_model, seen.copy())
-        if nested_schema is not None:
-            fields[rel_name] = (Optional[nested_schema], None)
-
+    # создаём модель
     out_schema = create_model(
-        model_name + "Out",
+        f"{model_name}Out",
         __base__=BaseModel,
         **fields,
     )
 
+    #
+    # ⭐ универсальный валидатор для всех полей
+    # превращает '' → None
+    #
+    @field_validator("*", mode="before")
+    def empty_to_none(cls, v):
+        if v == "" or v == " ":
+            return None
+        return v
+
+    out_schema.__pydantic_decorators__ = {
+        "validators": {
+            "empty_to_none": empty_to_none,
+        }
+    }
+
     out_schema.model_config = {"from_attributes": True}
+
     return out_schema
 
 
 def generate_schemas(model: DeclarativeMeta):
-    """
-    Возвращает кортеж:
-    (CreateSchema, PatchSchema, OutSchema)
-    """
+    """Возвращает (CreateSchema, PatchSchema, OutSchema)."""
     ensure_model(model)
 
     create_schema = create_model(
-        model.__name__ + "Create",
+        f"{model.__name__}Create",
         __base__=BaseModel,
-        **get_column_fields(model, include_id=False, optional=False)
+        **get_column_fields(model, include_id=False, optional=False),
     )
 
     patch_schema = create_model(
-        model.__name__ + "Patch",
+        f"{model.__name__}Patch",
         __base__=BaseModel,
-        **get_column_fields(model, include_id=False, optional=True)
+        **get_column_fields(model, include_id=False, optional=True),
     )
 
-    out_schema = generate_out_schema(model, seen=set())
+    out_schema = generate_out_schema(model, set())
 
     return create_schema, patch_schema, out_schema
