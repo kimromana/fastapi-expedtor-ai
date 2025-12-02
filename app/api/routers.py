@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from sqlalchemy.orm import DeclarativeMeta
 
 from app.crud.router import crud_router
+from .dirs import router as dirs_router
 
 
 def is_model(obj) -> bool:
@@ -31,6 +32,8 @@ def load_all_models():
 
 def create_auto_router() -> APIRouter:
     api = APIRouter()
+
+    api.include_router(dirs_router)
 
     for model in load_all_models():
         api.include_router(crud_router(model))

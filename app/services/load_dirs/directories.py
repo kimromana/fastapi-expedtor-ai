@@ -84,8 +84,18 @@ def load_stations(db):
 
     db.commit()
 
+def to_int_or_none(value):
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
 def load_etsng(db):
-    # путь к текущей папке (app/services/)
     base_path = os.path.dirname(__file__)
     file_path = os.path.join(base_path, "etsng.json")
 
@@ -93,19 +103,18 @@ def load_etsng(db):
         etsngs = json.load(f)
 
     for item in etsngs:
-
-        # 1. Проверка существования груза
+        # Проверка существования
         exists = db.query(Etsng).filter(Etsng.code == item["etsng_code"]).first()
         if exists:
             continue
 
-        # 2. Добавление нового объекта
         db.add(Etsng(
             code=item["etsng_code"],
             name=item["name"],
             code_gng=item["gng8_code"],
-            mvrn=item["mvrn"],
-            cargo_class=item["cargo_class"]
+            mvrn=to_int_or_none(item.get("mvrn")),
+            cargo_class=to_int_or_none(item.get("cargo_class")),
+            danger=bool(item.get("danger"))
         ))
 
     db.commit()
