@@ -3,7 +3,6 @@
 # (Экспедирование, предоставление ПС, тех. рейс)
 # ============================================================
 from sqlalchemy import Column, Integer, String
-
 from app.db.base import Base
 
 
@@ -12,3 +11,6 @@ class ServiceType(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(250), nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<{self.name}>"

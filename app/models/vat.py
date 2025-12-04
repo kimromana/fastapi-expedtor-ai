@@ -11,5 +11,8 @@ class Vat(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
-    rate = Column(Integer, default=0)
+    rate = Column(Integer, default=0, server_default='0')
     guid_1c = Column(String(150), nullable=True)
+
+    def __repr__(self):
+        return f"<{self.name}>"

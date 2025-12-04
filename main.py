@@ -3,8 +3,9 @@ from app.api.routers import router as api_router
 from fastapi.middleware.cors import CORSMiddleware
 
 
-app = FastAPI(title="Expeditor API AI")
-
+app = FastAPI(title="Expeditor API AI",
+              swagger_ui_parameters={"docExpansion": "none"}
+              )
 @app.get("/")
 def root():
     return {"message": "API is running"}

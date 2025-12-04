@@ -12,3 +12,6 @@ class Currency(Base):
     name = Column(String(250), nullable=False, index=True)
     code = Column(String(3), nullable=False, index=True)
     guid_1c = Column(String(150), nullable=True)
+
+    def __repr__(self):
+        return f"<{self.name}>"

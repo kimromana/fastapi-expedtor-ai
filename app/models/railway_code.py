@@ -4,7 +4,6 @@
 # ==========================================
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
 
 
@@ -20,13 +19,13 @@ class RailwayCode(Base):
     first_number = Column(Integer, default=1)
     is_one_code = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-
+    #
     owner_id = Column(Integer, ForeignKey("contractor.id", ondelete="RESTRICT"), nullable=False)
-    territory_id = Column(Integer, ForeignKey("territory.id", ondelete="RESTRICT"), nullable=False)
-
-    #Relationship
     owner = relationship("Contractor")
+    #
+    territory_id = Column(Integer, ForeignKey("territory.id", ondelete="RESTRICT"), nullable=False)
     territory = relationship("Territory")
+
 
 class RailwaySubcode(Base):
     __tablename__ = "railway_subcode"
@@ -36,6 +35,4 @@ class RailwaySubcode(Base):
     number = Column(Integer, default=0)
 
     code_id = Column(Integer, ForeignKey("railway_code.id", ondelete="RESTRICT"), nullable=False)
-
-    #Relationship
     code = relationship("RailwayCode")

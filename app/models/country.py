@@ -12,3 +12,6 @@ class Country(Base):
     name = Column(String(255), nullable=False, index=True)
     code_iso = Column(String(3), nullable=False, index=True)
     code_alpha2 = Column(String(2), nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<{self.name}>"

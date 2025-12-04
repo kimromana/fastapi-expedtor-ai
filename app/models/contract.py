@@ -3,7 +3,6 @@
 # ==========================================
 from sqlalchemy import Column, Integer, String, ForeignKey, Date
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
 
 
@@ -17,11 +16,14 @@ class Contract(Base):
     from_date = Column(Date, nullable=True)
     to_date = Column(Date, nullable=True)
 
-    contractor_id = Column(Integer, ForeignKey("contractor.id", ondelete="RESTRICT"), nullable=False)
-    organization_id = Column(Integer, ForeignKey("organization.id", ondelete="RESTRICT"), nullable=False)
-    currency_id = Column(Integer, ForeignKey("currency.id", ondelete="RESTRICT"), nullable=False)
-
-    #Relationship
+    contractor_id = Column(Integer, ForeignKey("contractor.id", ondelete="RESTRICT"), nullable=False, index=True)
     contractor = relationship("Contractor")
+
+    organization_id = Column(Integer, ForeignKey("organization.id", ondelete="RESTRICT"), nullable=False, index=True)
     organization = relationship("Organization")
+
+    currency_id = Column(Integer, ForeignKey("currency.id", ondelete="RESTRICT"), nullable=False, index=True)
     currency = relationship("Currency")
+
+    def __repr__(self):
+        return f"<{self.name}>"

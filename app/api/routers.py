@@ -2,9 +2,8 @@ import pkgutil
 import importlib
 from fastapi import APIRouter
 from sqlalchemy.orm import DeclarativeMeta
-
 from app.crud.router import crud_router
-from .dirs import router as dirs_router
+from app.utils.dirs.dirs import router as dirs_router
 
 
 def is_model(obj) -> bool:

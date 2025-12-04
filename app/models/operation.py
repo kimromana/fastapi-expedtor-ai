@@ -3,7 +3,6 @@
 # ==========================================================
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
 
 
@@ -16,6 +15,7 @@ class Operation(Base):
     is_tariff = Column(Boolean, default=False)
 
     vat_id = Column(Integer, ForeignKey("vat.id", ondelete="RESTRICT"), nullable=False)
-
-    #Relationship
     vat = relationship("Vat")
+
+    def __str__(self):
+        return f"{self.name}"

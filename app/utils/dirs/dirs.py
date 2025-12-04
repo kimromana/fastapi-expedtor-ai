@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
-from app.services.load_dirs.directories import *
+from app.utils.dirs.load_dirs.directories import *
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/dirs",
+    tags=["Directories"],  # общий тег
+)
 
-@router.post("/countries", tags=["Directories"])
+@router.post("/countries")
 def download_countries(db: Session = Depends(get_db)):
     try:
         load_countries(db)
@@ -13,7 +16,7 @@ def download_countries(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/territories", tags=["Directories"])
+@router.post("/territories")
 def download_territories(db: Session = Depends(get_db)):
     try:
         load_territories(db)
@@ -21,7 +24,7 @@ def download_territories(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/stations", tags=["Directories"])
+@router.post("/stations")
 def download_stations(db: Session = Depends(get_db)):
     try:
         load_stations(db)
@@ -29,7 +32,7 @@ def download_stations(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/etsng", tags=["Directories"])
+@router.post("/etsng")
 def download_etsng(db: Session = Depends(get_db)):
     try:
         load_etsng(db)
@@ -37,7 +40,7 @@ def download_etsng(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/gng", tags=["Directories"])
+@router.post("/gng")
 def download_gng(db: Session = Depends(get_db)):
     try:
         load_gng(db)
@@ -45,7 +48,7 @@ def download_gng(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/wagon_type", tags=["Directories"])
+@router.post("/wagon_type")
 def download_wagon_type(db: Session = Depends(get_db)):
     try:
         load_wagon_type(db)
@@ -53,7 +56,7 @@ def download_wagon_type(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/service_type", tags=["Directories"])
+@router.post("/service_type")
 def download_service_type(db: Session = Depends(get_db)):
     try:
         load_service_type(db)
