@@ -13,6 +13,7 @@ class Dislocation(Base):
     date = Column(DateTime, nullable=False, index=True)
     wagon = Column(String(50), nullable=False, index=True)
     container = Column(String(50), nullable=False, index=True)
+    container_type = Column(String(50), nullable=False, index=True)
     is_empty = Column(Boolean, nullable=False, default=False)
     is_broken = Column(Boolean, nullable=False, default=False)
     nomer_nakladnoi = Column(String(100), nullable=True, index=True)
