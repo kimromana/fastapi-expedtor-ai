@@ -12,7 +12,7 @@ class RailwayRoute(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     line_number = Column(Integer, default=0)
-    date_created = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    date_created = Column(DateTime(timezone=True), server_default=func.current_timestamp(), nullable=False)
     comment = Column(String(1000), nullable=True)
     price = Column(Numeric(15, 2), nullable=False, default=0, server_default='0')
     rate = Column(Numeric(15, 4), nullable=False, default=0, server_default='0')
@@ -57,7 +57,7 @@ class RailwayRouteExpense(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     line_number = Column(Integer, default=0, index=True)
-    date_created = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    date_created = Column(DateTime(timezone=True), server_default=func.current_timestamp(), nullable=False)
     price = Column(Numeric(15, 2), nullable=False, default=0, server_default='0')
     comment = Column(String(1000), nullable=True)
     rate = Column(Numeric(15, 4), nullable=False, default=0, server_default='0')

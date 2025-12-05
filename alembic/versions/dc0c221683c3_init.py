@@ -1,8 +1,8 @@
 """init
 
-Revision ID: a9cc27b81908
+Revision ID: dc0c221683c3
 Revises: 
-Create Date: 2025-12-04 09:40:16.626398
+Create Date: 2025-12-05 20:33:06.111071
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a9cc27b81908'
+revision: str = 'dc0c221683c3'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -79,8 +79,8 @@ def upgrade() -> None:
     sa.Column('full_name', sa.String(length=255), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('is_superuser', sa.Boolean(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
@@ -242,9 +242,72 @@ def upgrade() -> None:
     op.create_index(op.f('ix_station_code'), 'station', ['code'], unique=False)
     op.create_index(op.f('ix_station_id'), 'station', ['id'], unique=False)
     op.create_index(op.f('ix_station_name'), 'station', ['name'], unique=False)
+    op.create_table('dislocation',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('date', sa.DateTime(), nullable=False),
+    sa.Column('wagon', sa.String(length=50), nullable=False),
+    sa.Column('container', sa.String(length=50), nullable=False),
+    sa.Column('container_type', sa.String(length=50), nullable=False),
+    sa.Column('is_empty', sa.Boolean(), nullable=False),
+    sa.Column('is_broken', sa.Boolean(), nullable=False),
+    sa.Column('nomer_nakladnoi', sa.String(length=100), nullable=True),
+    sa.Column('send_date', sa.Date(), nullable=True),
+    sa.Column('eta', sa.Date(), nullable=True),
+    sa.Column('arrive_date_real', sa.Date(), nullable=True),
+    sa.Column('current_position_date', sa.Date(), nullable=True),
+    sa.Column('operation', sa.String(length=100), nullable=True),
+    sa.Column('weight', sa.Numeric(precision=10, scale=2), nullable=True),
+    sa.Column('distance_end', sa.Numeric(precision=15, scale=2), nullable=True),
+    sa.Column('full_distance', sa.Numeric(precision=15, scale=2), nullable=True),
+    sa.Column('gruz_sender', sa.String(length=255), nullable=True),
+    sa.Column('gruz_receiver', sa.String(length=255), nullable=True),
+    sa.Column('owner', sa.String(length=255), nullable=True),
+    sa.Column('days_wo_movement', sa.Numeric(precision=15, scale=2), nullable=True),
+    sa.Column('days_wo_operation', sa.Numeric(precision=15, scale=2), nullable=True),
+    sa.Column('send_date_time', sa.DateTime(), nullable=True),
+    sa.Column('days_in_transit', sa.Numeric(precision=15, scale=2), nullable=True),
+    sa.Column('group_id', sa.String(length=255), nullable=True),
+    sa.Column('group_name', sa.String(length=255), nullable=True),
+    sa.Column('arrived', sa.Boolean(), nullable=True),
+    sa.Column('round_vagon', sa.Boolean(), nullable=True),
+    sa.Column('vagon_comment', sa.String(length=255), nullable=True),
+    sa.Column('operation_id', sa.String(length=255), nullable=True),
+    sa.Column('days_end', sa.String(length=255), nullable=True),
+    sa.Column('from_station_id', sa.Integer(), nullable=True),
+    sa.Column('to_station_id', sa.Integer(), nullable=True),
+    sa.Column('current_station_id', sa.Integer(), nullable=True),
+    sa.Column('etsng_id', sa.Integer(), nullable=True),
+    sa.Column('previous_etsng_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['current_station_id'], ['station.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['etsng_id'], ['etsng.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['from_station_id'], ['station.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['previous_etsng_id'], ['etsng.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['to_station_id'], ['station.id'], ondelete='RESTRICT'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_dislocation_arrive_date_real'), 'dislocation', ['arrive_date_real'], unique=False)
+    op.create_index(op.f('ix_dislocation_container'), 'dislocation', ['container'], unique=False)
+    op.create_index(op.f('ix_dislocation_container_type'), 'dislocation', ['container_type'], unique=False)
+    op.create_index(op.f('ix_dislocation_current_position_date'), 'dislocation', ['current_position_date'], unique=False)
+    op.create_index(op.f('ix_dislocation_current_station_id'), 'dislocation', ['current_station_id'], unique=False)
+    op.create_index(op.f('ix_dislocation_date'), 'dislocation', ['date'], unique=False)
+    op.create_index(op.f('ix_dislocation_eta'), 'dislocation', ['eta'], unique=False)
+    op.create_index(op.f('ix_dislocation_etsng_id'), 'dislocation', ['etsng_id'], unique=False)
+    op.create_index(op.f('ix_dislocation_from_station_id'), 'dislocation', ['from_station_id'], unique=False)
+    op.create_index(op.f('ix_dislocation_gruz_receiver'), 'dislocation', ['gruz_receiver'], unique=False)
+    op.create_index(op.f('ix_dislocation_gruz_sender'), 'dislocation', ['gruz_sender'], unique=False)
+    op.create_index(op.f('ix_dislocation_id'), 'dislocation', ['id'], unique=False)
+    op.create_index(op.f('ix_dislocation_nomer_nakladnoi'), 'dislocation', ['nomer_nakladnoi'], unique=False)
+    op.create_index(op.f('ix_dislocation_operation'), 'dislocation', ['operation'], unique=False)
+    op.create_index(op.f('ix_dislocation_owner'), 'dislocation', ['owner'], unique=False)
+    op.create_index(op.f('ix_dislocation_previous_etsng_id'), 'dislocation', ['previous_etsng_id'], unique=False)
+    op.create_index(op.f('ix_dislocation_send_date'), 'dislocation', ['send_date'], unique=False)
+    op.create_index(op.f('ix_dislocation_send_date_time'), 'dislocation', ['send_date_time'], unique=False)
+    op.create_index(op.f('ix_dislocation_to_station_id'), 'dislocation', ['to_station_id'], unique=False)
+    op.create_index(op.f('ix_dislocation_wagon'), 'dislocation', ['wagon'], unique=False)
     op.create_table('expense_registration',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=500), nullable=True),
@@ -267,7 +330,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_expense_registration_organization_id'), 'expense_registration', ['organization_id'], unique=False)
     op.create_table('railway_order',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
@@ -315,7 +378,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_railway_subcode_id'), 'railway_subcode', ['id'], unique=False)
     op.create_table('specification',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
@@ -361,7 +424,7 @@ def upgrade() -> None:
     op.create_table('railway_order_way',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('amount', sa.Integer(), nullable=True),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('summ', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
@@ -379,7 +442,7 @@ def upgrade() -> None:
     op.create_table('railway_route',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -430,7 +493,7 @@ def upgrade() -> None:
     op.create_table('specification_expense',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -459,7 +522,7 @@ def upgrade() -> None:
     op.create_table('railway_route_expense',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -487,7 +550,7 @@ def upgrade() -> None:
     op.create_table('specification_expense_line',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('wagon', sa.String(length=20), nullable=True),
@@ -587,6 +650,27 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_expense_registration_id'), table_name='expense_registration')
     op.drop_index(op.f('ix_expense_registration_date'), table_name='expense_registration')
     op.drop_table('expense_registration')
+    op.drop_index(op.f('ix_dislocation_wagon'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_to_station_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_send_date_time'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_send_date'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_previous_etsng_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_owner'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_operation'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_nomer_nakladnoi'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_gruz_sender'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_gruz_receiver'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_from_station_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_etsng_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_eta'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_date'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_current_station_id'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_current_position_date'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_container_type'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_container'), table_name='dislocation')
+    op.drop_index(op.f('ix_dislocation_arrive_date_real'), table_name='dislocation')
+    op.drop_table('dislocation')
     op.drop_index(op.f('ix_station_name'), table_name='station')
     op.drop_index(op.f('ix_station_id'), table_name='station')
     op.drop_index(op.f('ix_station_code'), table_name='station')

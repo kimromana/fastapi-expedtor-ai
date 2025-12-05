@@ -1,3 +1,4 @@
+from app.models.railway_route import RailwayRoute
 from app.models.specification import Specification
 from app.models.territory import Territory
 from app.models.station import Station
@@ -12,7 +13,7 @@ from app.models.contract import Contract
 from app.models.currency import Currency
 from app.models.railway_order import RailwayOrder, RailwayOrderWay
 from app.models.service_type import ServiceType
-from app.utils.utils import find_id_by_field, find_id_by_two_fields
+from app.utils.utils import find_id_by_field, find_id_by_two_fields, parse_date
 import json
 import os
 
@@ -206,11 +207,14 @@ def load_demo(db):
         demos = json.load(f)
 
     load_currencies(db, demos.get("currencies", []))
+    db.commit()
     load_organizations(db, demos.get("organizations", []))
+    db.commit()
     load_bank_accounts(db, demos.get("bank_accounts", []))
+    db.commit()
     load_contractors(db, demos.get("contractors", []))
+    db.commit()
     load_contracts(db, demos.get("contracts", []))
-
     db.commit()
 
 def load_demo_upr(db):
@@ -221,8 +225,8 @@ def load_demo_upr(db):
         demos = json.load(f)
 
     load_railway_orders(db, demos.get("railway_orders", []))
+    db.commit()
     load_railway_orders_way(db, demos.get("railway_orders_ways", []))
-
     db.commit()
 
 def load_railway_orders(db, railway_orders):
@@ -259,6 +263,8 @@ def load_railway_orders(db, railway_orders):
         data["currency_id"] = find_currency
         data["contractor_id"] = find_contractor
         data["contract_id"] = find_contract
+
+        data["date"] = parse_date(data["date"])
 
         try:
             db.add(RailwayOrder(**data))
@@ -322,6 +328,7 @@ def load_railway_orders_way(db, railway_orders_ways):
 
 def find_specification(db, price, weight, organization_id, contractor_id, contract_id,
                        currency_id, from_station_id, to_station_id, wagon_type_id, order_date):
+
     find_specification_ = (db.query(Specification).
                           filter(Specification.price == price).
                           filter(Specification.weight == weight).
@@ -355,6 +362,33 @@ def find_specification(db, price, weight, organization_id, contractor_id, contra
         db.flush()
         return new_spec.id
     return None
+
+def load_routes(db, routes):
+    for item in routes:
+        find_order = find_id_by_field(db, RailwayOrder, "number", item["order_"])
+        if find_order is None: continue
+
+        find_route = find_id_by_two_fields(db, RailwayRoute, "order_id", find_order,
+                                           "line_number", item["line_number"])
+        if find_route: continue
+
+        data = item.copy()
+        data.pop("order_", None)
+
+        data["order_id"] = find_order
+        data["gng_id"] = None
+        data["etsng_id"] = find_id_by_field(db, Etsng, "code", item["etsng_id"])
+        data["wagon_type_id"] = find_id_by_field(db, WagonType, "name", item["wagon_type_id"])
+        data["from_station_id"] = find_id_by_field(db, Station, "code", item["from_station_id"])
+        data["to_station_id"] = find_id_by_field(db, Station, "code", item["to_station_id"])
+
+        data["date_from"] = parse_date(data["date_from"])
+        data["date_from_sng"] = parse_date(data["date_from_sng"])
+        data["date_reload"] = parse_date(data["date_reload"])
+        data["date_arrive"] = parse_date(data["date_arrive"])
+        data["date_border"] = parse_date(data["date_border"])
+
+        db.add(RailwayRoute(**data))
 
 def load_currencies(db, currencies):
     for item in currencies:
@@ -406,6 +440,9 @@ def load_contracts(db, contracts):
         data["currency_id"] = find_currency
         data["organization_id"] = find_org
         data["contractor_id"] = find_contractor
+
+        data["from_date"] = parse_date(data["from_date"])
+        data["to_date"] = parse_date(data["to_date"])
 
         # создаём объект
         db.add(Contract(**data))

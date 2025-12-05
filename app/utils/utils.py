@@ -53,3 +53,16 @@ def find_id_by_two_fields(db, model, field1_name: str, value1, field2_name: str,
     )
 
     return obj.id if obj else None
+
+def parse_date(value):
+    from datetime import datetime, date
+
+    if not value:
+        return None
+
+    try:
+        # формат из 1С "2023-03-15T00:00:00"
+        return datetime.fromisoformat(value).date()
+    except:
+        return None
+

@@ -22,7 +22,7 @@ def download_dirs(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/download_demo")
+@router.post("/download_demo_from_buh")
 def download_demo(db: Session = Depends(get_db)):
     try:
         load_demo(db)
@@ -30,7 +30,7 @@ def download_demo(db: Session = Depends(get_db)):
     except Exception as e:
         return {"message": str(e)}
 
-@router.post("/download_demo_upr")
+@router.post("/download_demo_from_upr")
 def download_demo_upr(db: Session = Depends(get_db)):
     try:
         load_demo_upr(db)

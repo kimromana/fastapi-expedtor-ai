@@ -11,7 +11,7 @@ class RailwayOrder(Base):
     __tablename__ = "railway_order"
 
     id = Column(Integer, primary_key=True, index=True)
-    date_created = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    date_created = Column(DateTime(timezone=True), server_default=func.current_timestamp(), nullable=False)
     number = Column(String(15), nullable=True, index=True)
     date = Column(DateTime, nullable=False, index=True)
     comment = Column(String(1000), nullable=True)
@@ -55,7 +55,7 @@ class RailwayOrderWay(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     line_number = Column(Integer, default=0, index=True)
-    date_created = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    date_created = Column(DateTime(timezone=True), server_default=func.current_timestamp(), nullable=False)
     amount = Column(Integer, default=0)
     price = Column(Numeric(15, 2), nullable=False, default=0, server_default='0')
     summ = Column(Numeric(15, 2), nullable=False, default=0, server_default='0')
