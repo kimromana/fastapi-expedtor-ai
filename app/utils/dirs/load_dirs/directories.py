@@ -188,3 +188,181 @@ def load_service_type(db):
         ))
 
     db.commit()
+
+def load_demo(db):
+    # путь к текущей папке (app/services/)
+    base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, "buh.json")
+
+    with open(file_path, "r", encoding="utf-8-sig") as f:
+        demos = json.load(f)
+
+    load_currencies(db, demos.get("currencies", []))
+    load_organizations(db, demos.get("organizations", []))
+    load_bank_accounts(db, demos.get("bank_accounts", []))
+    load_contractors(db, demos.get("contractors", []))
+    load_contracts(db, demos.get("contracts", []))
+
+    db.commit()
+
+def load_currencies(db, currencies):
+    from app.models.currency import Currency
+
+    for item in currencies:
+        print("Импорт валюты:", item)
+
+        exists = db.query(Currency).filter(Currency.code == item["code"]).first()
+        if exists:
+            continue
+
+        db.add(Currency(**item))
+
+def load_organizations(db, organizations):
+    from app.models.organization import Organization
+    from app.models.country import Country
+
+    for item in organizations:
+        print("Импорт организаций:", item)
+
+        exists = db.query(Organization).filter(Organization.guid_1c == item["guid_1c"]).first()
+        if exists:
+            continue
+
+        # --- ищем страну по коду ---
+        country_code = item.get("country__code")
+        find_country = None
+        if country_code:
+            find_country = db.query(Country).filter(Country.code_iso == country_code).first()
+
+        # --- готовим данные для Organization ---
+        data = item.copy()
+        data.pop("country__code", None)  # удаляем, чтобы не падало на **item
+
+        # добавляем country_id, если нашли страну
+        if find_country:
+            data["country_id"] = find_country.id
+        else:
+            data["country_id"] = None  # или не добавлять — как нужно тебе
+
+        # создаём объект
+        db.add(Organization(**data))
+
+def load_contractors(db, contractors):
+    from app.models.contractor import Contractor
+    from app.models.country import Country
+
+    for item in contractors:
+        print("Импорт контрагентов:", item)
+
+        exists = db.query(Contractor).filter(Contractor.guid_1c == item["guid_1c"]).first()
+        if exists:
+            continue
+
+        # --- ищем страну по коду ---
+        country_code = item.get("country__code")
+        find_country = None
+        if country_code:
+            find_country = db.query(Country).filter(Country.code_iso == country_code).first()
+
+        # --- готовим данные для Organization ---
+        data = item.copy()
+        data.pop("country__code", None)  # удаляем, чтобы не падало на **item
+
+        # добавляем country_id, если нашли страну
+        if find_country:
+            data["country_id"] = find_country.id
+        else:
+            data["country_id"] = None  # или не добавлять — как нужно тебе
+
+        # создаём объект
+        db.add(Contractor(**data))
+
+def load_contracts(db, contracts):
+    from app.models.contractor import Contractor
+    from app.models.organization import Organization
+    from app.models.currency import Currency
+    from app.models.contract import Contract
+
+    for item in contracts:
+        print("Импорт договоров:", item)
+
+        exists = db.query(Contract).filter(Contract.guid_1c == item["guid_1c"]).first()
+        if exists:
+            continue
+
+        currency_guid = item.get("currency_guid")
+        find_currency = None
+        if currency_guid:
+            find_currency = db.query(Currency).filter(Currency.guid_1c == currency_guid).first()
+
+        contractor_guid = item.get("contractor_guid")
+        find_contractor = None
+        if contractor_guid:
+            find_contractor = db.query(Contractor).filter(Contractor.guid_1c == contractor_guid).first()
+
+        org_guid = item.get("organization_guid")
+        find_org = None
+        if org_guid:
+            find_org = db.query(Organization).filter(Organization.guid_1c == org_guid).first()
+
+        data = item.copy()
+        data.pop("currency_guid", None)
+        data.pop("contractor_guid", None)
+        data.pop("organization_guid", None)
+
+        if find_currency:
+            data["currency_id"] = find_currency.id
+        else:
+            data["currency_id"] = None
+
+        if find_org:
+            data["organization_id"] = find_org.id
+        else:
+            data["organization_id"] = None
+
+        if find_contractor:
+            data["contractor_id"] = find_contractor.id
+        else:
+            data["contractor_id"] = None
+
+        # создаём объект
+        db.add(Contract(**data))
+
+def load_bank_accounts(db, bank_accounts):
+    from app.models.organization import Organization
+    from app.models.currency import Currency
+    from app.models.bank_account import BankAccount
+
+    for item in bank_accounts:
+        print("Импорт банковских счетов:", item)
+
+        exists = db.query(BankAccount).filter(BankAccount.guid_1c == item["guid_1c"]).first()
+        if exists:
+            continue
+
+        org_guid = item.get("organization_guid")
+        find_org = None
+        if org_guid:
+            find_org = db.query(Organization).filter(Organization.guid_1c == org_guid).first()
+
+        curr_guid = item.get("currency_guid")
+        find_curr = None
+        if curr_guid:
+            find_curr = db.query(Currency).filter(Currency.guid_1c == curr_guid).first()
+
+        data = item.copy()
+        data.pop("organization_guid", None)  # удаляем, чтобы не падало на **item
+        data.pop("currency_guid", None)
+
+        if find_org:
+            data["organization_id"] = find_org.id
+        else:
+            data["organization_id"] = None
+
+        if find_curr:
+            data["currency_id"] = find_curr.id
+        else:
+            data["currency_id"] = None
+
+        # создаём объект
+        db.add(BankAccount(**data))

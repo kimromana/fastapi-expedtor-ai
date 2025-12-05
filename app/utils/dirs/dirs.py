@@ -63,3 +63,11 @@ def download_service_type(db: Session = Depends(get_db)):
         return {"message": "success"}
     except Exception as e:
         return {"message": str(e)}
+
+@router.post("/demo")
+def download_demo(db: Session = Depends(get_db)):
+    try:
+        load_demo(db)
+        return {"message": "success"}
+    except Exception as e:
+        return {"message": str(e)}
