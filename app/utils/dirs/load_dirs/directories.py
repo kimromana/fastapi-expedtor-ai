@@ -228,6 +228,8 @@ def load_demo_upr(db):
     db.commit()
     load_railway_orders_way(db, demos.get("railway_orders_ways", []))
     db.commit()
+    load_routes(db, demos.get("railway_orders_routes", []))
+    db.commit()
 
 def load_railway_orders(db, railway_orders):
     for item in railway_orders:
@@ -372,6 +374,11 @@ def load_routes(db, routes):
                                            "line_number", item["line_number"])
         if find_route: continue
 
+        fr_st = find_id_by_field(db, Station, "code", item["from_station_id"])
+        if fr_st is None: continue
+        to_st = find_id_by_field(db, Station, "code", item["to_station_id"])
+        if to_st is None: continue
+
         data = item.copy()
         data.pop("order_", None)
 
@@ -379,8 +386,8 @@ def load_routes(db, routes):
         data["gng_id"] = None
         data["etsng_id"] = find_id_by_field(db, Etsng, "code", item["etsng_id"])
         data["wagon_type_id"] = find_id_by_field(db, WagonType, "name", item["wagon_type_id"])
-        data["from_station_id"] = find_id_by_field(db, Station, "code", item["from_station_id"])
-        data["to_station_id"] = find_id_by_field(db, Station, "code", item["to_station_id"])
+        data["from_station_id"] = fr_st
+        data["to_station_id"] = to_st
 
         data["date_from"] = parse_date(data["date_from"])
         data["date_from_sng"] = parse_date(data["date_from_sng"])
