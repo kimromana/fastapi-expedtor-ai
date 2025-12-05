@@ -1,10 +1,18 @@
-from app.models.country import Country
+from app.models.specification import Specification
 from app.models.territory import Territory
 from app.models.station import Station
 from app.models.etsng import Etsng
 from app.models.gng import Gng
 from app.models.wagon_type import WagonType
+from app.models.country import Country
+from app.models.contractor import Contractor
+from app.models.organization import Organization
+from app.models.bank_account import BankAccount
+from app.models.contract import Contract
+from app.models.currency import Currency
+from app.models.railway_order import RailwayOrder, RailwayOrderWay
 from app.models.service_type import ServiceType
+from app.utils.utils import find_id_by_field, find_id_by_two_fields
 import json
 import os
 
@@ -205,164 +213,217 @@ def load_demo(db):
 
     db.commit()
 
-def load_currencies(db, currencies):
-    from app.models.currency import Currency
+def load_demo_upr(db):
+    base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, "upr.json")
 
-    for item in currencies:
-        print("Импорт валюты:", item)
+    with open(file_path, "r", encoding="utf-8-sig") as f:
+        demos = json.load(f)
 
-        exists = db.query(Currency).filter(Currency.code == item["code"]).first()
-        if exists:
+    load_railway_orders(db, demos.get("railway_orders", []))
+    load_railway_orders_way(db, demos.get("railway_orders_ways", []))
+
+    db.commit()
+
+def load_railway_orders(db, railway_orders):
+    for item in railway_orders:
+        if find_id_by_field(db, RailwayOrder, "number", item["number"]):
             continue
 
+        find_service_type = find_id_by_field(db, ServiceType, "name", item["service_type"])
+        if find_service_type is None:
+            new_obj = ServiceType(name=item["service_type"])
+            db.add(new_obj)
+            db.flush()
+
+            find_service_type = new_obj.id
+
+        find_org = find_id_by_field(db, Organization, "guid_1c", item["organization_id"])
+        find_currency = find_id_by_field(db, Currency, "code", item["currency_id"])
+        find_contractor = find_id_by_field(db, Contractor, "guid_1c", item["contractor_id"])
+        find_contract = find_id_by_field(db, Contract, "guid_1c", item["contract_id"])
+
+        if find_contractor is None:
+            continue
+
+        data = item.copy()
+        data.pop("service_type", None)
+        data.pop("organization_id", None)
+        data.pop("currency_id", None)
+        data.pop("contractor_id", None)
+        data.pop("contract_id", None)
+
+        data["service_type_id"] = find_service_type
+        data["organization_id"] = find_org
+        data["author_id"] = 1
+        data["currency_id"] = find_currency
+        data["contractor_id"] = find_contractor
+        data["contract_id"] = find_contract
+
+        try:
+            db.add(RailwayOrder(**data))
+        except Exception as e:
+            print("Ошибка при добавлении RailwayOrder:", e)
+            print("Данные:", data)
+            continue
+
+def load_railway_orders_way(db, railway_orders_ways):
+    for item in railway_orders_ways:
+        find_order = find_id_by_field(db, RailwayOrder, "number", item["order_number"])
+        if find_order is None: continue
+
+        from_station = find_id_by_field(db, Station, "code", item["from_station_"])
+        if from_station is None: continue
+
+        to_station = find_id_by_field(db, Station, "code", item["to_station_"])
+        if to_station is None: continue
+
+        find_wagon_type = find_id_by_field(db, WagonType, "name", item["wagon_type_"])
+        if find_wagon_type is None:
+            new_obj = WagonType(name=item["wagon_type_"])
+            db.add(new_obj)
+            db.flush()
+            find_wagon_type = new_obj.id
+
+        weight = item["weight_"]
+
+        obj_order = db.query(RailwayOrder).filter(RailwayOrder.id == find_order).first()
+
+        if find_id_by_two_fields(db, RailwayOrderWay,
+                                 "order_id", find_order,
+                                 "line_number", item["line_number"]): continue
+
+        find_spec = find_specification(db,
+                                       item["price"],
+                                       weight,
+                                       obj_order.organization_id,
+                                       obj_order.contractor_id,
+                                       obj_order.contract_id,
+                                       obj_order.currency_id,
+                                       from_station,
+                                       to_station,
+                                       find_wagon_type,
+                                       obj_order.date
+                                       )
+
+        data = item.copy()
+        data.pop("order_number", None)
+        data.pop("from_station_", None)
+        data.pop("to_station_", None)
+        data.pop("wagon_type_", None)
+        data.pop("etsng_", None)
+        data.pop("gng_", None)
+        data.pop("weight_", None)
+
+        data["order_id"] = find_order
+        data["specification_id"] = find_spec
+
+        db.add(RailwayOrderWay(**data))
+
+def find_specification(db, price, weight, organization_id, contractor_id, contract_id,
+                       currency_id, from_station_id, to_station_id, wagon_type_id, order_date):
+    find_specification_ = (db.query(Specification).
+                          filter(Specification.price == price).
+                          filter(Specification.weight == weight).
+                          filter(Specification.organization_id == organization_id).
+                          filter(Specification.contractor_id == contractor_id).
+                          filter(Specification.contract_id == contract_id).
+                          filter(Specification.currency_id == currency_id).
+                          filter(Specification.from_station_id == from_station_id).
+                          filter(Specification.to_station_id == to_station_id).
+                          filter(Specification.wagon_type_id == wagon_type_id).
+                          first())
+    if find_specification_:
+        return find_specification_.id
+
+    if not find_specification_:
+        new_spec = Specification(
+            date=order_date,
+            price=price,
+            weight=weight,
+            organization_id=organization_id,
+            contractor_id=contractor_id,
+            contract_id=contract_id,
+            currency_id=currency_id,
+            from_station_id=from_station_id,
+            to_station_id=to_station_id,
+            wagon_type_id=wagon_type_id,
+            author_id = 1,
+        )
+
+        db.add(new_spec)
+        db.flush()
+        return new_spec.id
+    return None
+
+def load_currencies(db, currencies):
+    for item in currencies:
+        if find_id_by_field(db, Currency, "code", item["code"]):
+            continue
         db.add(Currency(**item))
 
 def load_organizations(db, organizations):
-    from app.models.organization import Organization
-    from app.models.country import Country
-
     for item in organizations:
-        print("Импорт организаций:", item)
-
-        exists = db.query(Organization).filter(Organization.guid_1c == item["guid_1c"]).first()
-        if exists:
+        if find_id_by_field(db, Organization, "guid_1c", item["guid_1c"]):
             continue
+        find_country = find_id_by_field(db, Country, "code_iso", item["country__code"])
 
-        # --- ищем страну по коду ---
-        country_code = item.get("country__code")
-        find_country = None
-        if country_code:
-            find_country = db.query(Country).filter(Country.code_iso == country_code).first()
-
-        # --- готовим данные для Organization ---
         data = item.copy()
         data.pop("country__code", None)  # удаляем, чтобы не падало на **item
-
-        # добавляем country_id, если нашли страну
-        if find_country:
-            data["country_id"] = find_country.id
-        else:
-            data["country_id"] = None  # или не добавлять — как нужно тебе
+        data["country_id"] = find_country
 
         # создаём объект
         db.add(Organization(**data))
 
 def load_contractors(db, contractors):
-    from app.models.contractor import Contractor
-    from app.models.country import Country
-
     for item in contractors:
-        print("Импорт контрагентов:", item)
-
-        exists = db.query(Contractor).filter(Contractor.guid_1c == item["guid_1c"]).first()
-        if exists:
+        if find_id_by_field(db, Contractor, "guid_1c", item["guid_1c"]):
             continue
 
-        # --- ищем страну по коду ---
-        country_code = item.get("country__code")
-        find_country = None
-        if country_code:
-            find_country = db.query(Country).filter(Country.code_iso == country_code).first()
+        find_country = find_id_by_field(db, Country, "code_iso", item["country__code"])
 
-        # --- готовим данные для Organization ---
         data = item.copy()
-        data.pop("country__code", None)  # удаляем, чтобы не падало на **item
-
-        # добавляем country_id, если нашли страну
-        if find_country:
-            data["country_id"] = find_country.id
-        else:
-            data["country_id"] = None  # или не добавлять — как нужно тебе
+        data.pop("country__code", None)
+        data["country_id"] = find_country
 
         # создаём объект
         db.add(Contractor(**data))
 
 def load_contracts(db, contracts):
-    from app.models.contractor import Contractor
-    from app.models.organization import Organization
-    from app.models.currency import Currency
-    from app.models.contract import Contract
-
     for item in contracts:
-        print("Импорт договоров:", item)
-
-        exists = db.query(Contract).filter(Contract.guid_1c == item["guid_1c"]).first()
-        if exists:
+        if find_id_by_field(db, Contract, "guid_1c", item["guid_1c"]):
             continue
 
-        currency_guid = item.get("currency_guid")
-        find_currency = None
-        if currency_guid:
-            find_currency = db.query(Currency).filter(Currency.guid_1c == currency_guid).first()
-
-        contractor_guid = item.get("contractor_guid")
-        find_contractor = None
-        if contractor_guid:
-            find_contractor = db.query(Contractor).filter(Contractor.guid_1c == contractor_guid).first()
-
-        org_guid = item.get("organization_guid")
-        find_org = None
-        if org_guid:
-            find_org = db.query(Organization).filter(Organization.guid_1c == org_guid).first()
+        find_currency = find_id_by_field(db, Currency, "guid_1c", item["currency_guid"])
+        find_contractor = find_id_by_field(db, Contractor, "guid_1c", item["contractor_guid"])
+        find_org = find_id_by_field(db, Organization, "guid_1c", item["organization_guid"])
 
         data = item.copy()
         data.pop("currency_guid", None)
         data.pop("contractor_guid", None)
         data.pop("organization_guid", None)
 
-        if find_currency:
-            data["currency_id"] = find_currency.id
-        else:
-            data["currency_id"] = None
-
-        if find_org:
-            data["organization_id"] = find_org.id
-        else:
-            data["organization_id"] = None
-
-        if find_contractor:
-            data["contractor_id"] = find_contractor.id
-        else:
-            data["contractor_id"] = None
+        data["currency_id"] = find_currency
+        data["organization_id"] = find_org
+        data["contractor_id"] = find_contractor
 
         # создаём объект
         db.add(Contract(**data))
 
 def load_bank_accounts(db, bank_accounts):
-    from app.models.organization import Organization
-    from app.models.currency import Currency
-    from app.models.bank_account import BankAccount
-
     for item in bank_accounts:
-        print("Импорт банковских счетов:", item)
-
-        exists = db.query(BankAccount).filter(BankAccount.guid_1c == item["guid_1c"]).first()
-        if exists:
+        if find_id_by_field(db, BankAccount, "guid_1c", item["guid_1c"]):
             continue
 
-        org_guid = item.get("organization_guid")
-        find_org = None
-        if org_guid:
-            find_org = db.query(Organization).filter(Organization.guid_1c == org_guid).first()
-
-        curr_guid = item.get("currency_guid")
-        find_curr = None
-        if curr_guid:
-            find_curr = db.query(Currency).filter(Currency.guid_1c == curr_guid).first()
+        find_org = find_id_by_field(db, Organization, "guid_1c", item["organization_guid"])
+        find_curr = find_id_by_field(db, Currency, "guid_1c", item["currency_guid"])
 
         data = item.copy()
         data.pop("organization_guid", None)  # удаляем, чтобы не падало на **item
         data.pop("currency_guid", None)
 
-        if find_org:
-            data["organization_id"] = find_org.id
-        else:
-            data["organization_id"] = None
-
-        if find_curr:
-            data["currency_id"] = find_curr.id
-        else:
-            data["currency_id"] = None
+        data["organization_id"] = find_org
+        data["currency_id"] = find_curr
 
         # создаём объект
         db.add(BankAccount(**data))

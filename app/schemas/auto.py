@@ -1,5 +1,5 @@
 from pydantic import BaseModel, create_model, field_validator
-from typing import Optional, Dict, Any, Set
+from typing import Optional, Dict, Any, Set, List
 from sqlalchemy.orm import DeclarativeMeta
 
 
@@ -42,9 +42,9 @@ def get_relationships(model: DeclarativeMeta) -> Dict[str, Any]:
 
 
 def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> type[BaseModel] | None:
-    """Рекурсивно создаёт OutSchema с вложенными моделями."""
     model_name = model.__name__
 
+    # предотвращаем циклы
     if model_name in seen:
         return None
 
@@ -54,9 +54,16 @@ def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> type[BaseMode
 
     # вложенные связи
     for rel_name, rel in get_relationships(model).items():
-        target = rel.mapper.class_  # type: ignore[attr-defined]
+        target = rel.mapper.class_
         nested = generate_out_schema(target, seen.copy())
-        if nested is not None:
+
+        if nested is None:
+            continue
+
+        # ⭐ Если отношение — список (uselist=True)
+        if rel.uselist:
+            fields[rel_name] = (Optional[List[nested]], None)
+        else:
             fields[rel_name] = (Optional[nested], None)
 
     # создаём модель
@@ -66,10 +73,7 @@ def generate_out_schema(model: DeclarativeMeta, seen: Set[str]) -> type[BaseMode
         **fields,
     )
 
-    #
-    # ⭐ универсальный валидатор для всех полей
-    # превращает '' → None
-    #
+    # универсальный валидатор
     @field_validator("*", mode="before")
     def empty_to_none(cls, v):
         if v == "" or v == " ":
