@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from typing import List, Any
 
 from app.db.deps import get_db
@@ -55,19 +55,50 @@ FILTERS_DOC = """
 /station?name=Алма&code__gte=200000&territory.name=Казахстан&id_min=10&id_max=100
 """
 
+# ============================================================
+# CLEANER — убираем '' → None
+# ============================================================
 def clean_instance(obj):
-    """
-    Преобразует все '' → None только по колонкам SQLAlchemy.
-    Работает БЫСТРО, безопасно и на 100% избавляет от ошибок Pydantic.
-    """
     mapper = obj.__mapper__
     for column in mapper.columns:
-        value = getattr(obj, column.key)
-        if value == "":
+        val = getattr(obj, column.key)
+        if val == "":
             setattr(obj, column.key, None)
     return obj
 
+
+# ============================================================
+# Генератор *_name полей
+# ============================================================
+def fill_names(instance, model):
+    """
+    Добавляет поля вида organization_name, author_name, currency_name и т.д.
+    """
+    result = instance.__dict__.copy()
+
+    for rel in model.__mapper__.relationships:
+        rel_obj = getattr(instance, rel.key, None)
+        field_name = f"{rel.key}_name"
+
+        if rel_obj is None:
+            result[field_name] = None
+            continue
+
+        # если __repr__ переопределён — используем
+        if rel_obj.__class__.__repr__ is not object.__repr__:
+            result[field_name] = repr(rel_obj)
+        else:
+            # иначе id объекта
+            result[field_name] = getattr(rel_obj, "id", None)
+
+    return result
+
+
+# ============================================================
+# CRUD ROUTER
+# ============================================================
 def crud_router(model: Any, prefix: str | None = None, tags: list[str] | None = None) -> APIRouter:
+
     if prefix is None:
         prefix = "/" + model.__tablename__
 
@@ -76,18 +107,20 @@ def crud_router(model: Any, prefix: str | None = None, tags: list[str] | None = 
 
     router = APIRouter(prefix=prefix, tags=tags)
 
-    create_schema, patch_schema, out_schema = generate_schemas(model)
+    # 4 схемы: Create, Patch, ListOut, DetailOut
+    create_schema, patch_schema, out_list_schema, out_detail_schema = generate_schemas(model)
+
     repository = create_repository(model)
     service = create_service(repository)
 
-    # ----------------------------------------------------
-    # LIST ITEMS
-    # ----------------------------------------------------
+    # ---------------------------------------------------------
+    # GET LIST
+    # ---------------------------------------------------------
     @router.get(
         "/",
-        response_model=List[out_schema],
+        response_model=List[out_list_schema],
         summary="List items with universal filters",
-        description=FILTERS_DOC,
+        description=FILTERS_DOC
     )
     def list_items(
         request: Request,
@@ -98,58 +131,60 @@ def crud_router(model: Any, prefix: str | None = None, tags: list[str] | None = 
         sort_dir: str = "asc",
     ):
         params = dict(request.query_params)
-
-        # отделяем фильтры
         reserved = {"limit", "offset", "sort", "sort_dir"}
+
         filters = {k: v for k, v in params.items() if k not in reserved}
 
         query = db.query(model)
         query = apply_filters(query, model, filters)
 
-        # сортировка
+        # Подгружаем ВСЕ отношения — корректно!
+        for rel in model.__mapper__.relationships:
+            query = query.options(selectinload(getattr(model, rel.key)))
+
+        # Сортировка
         if sort:
             col = getattr(model, sort, None)
             if col is not None:
                 query = query.order_by(col.desc() if sort_dir == "desc" else col.asc())
 
         rows = query.offset(offset).limit(limit).all()
-        # ⬅⬅⬅ Добавили clean_instance()
-        cleaned = [clean_instance(r) for r in rows]
 
-        # ORM-mode (Pydantic v2)
-        return [out_schema.model_validate(r, from_attributes=True) for r in cleaned]
+        result = []
+        for r in rows:
+            clean_instance(r)
+            data = fill_names(r, model)   # ← добавляем *_name
+            result.append(out_list_schema.model_validate(data))
 
-    # ----------------------------------------------------
-    # GET ONE
-    # ----------------------------------------------------
-    @router.get("/{obj_id}", response_model=out_schema)
+        return result
+
+    # ---------------------------------------------------------
+    # GET DETAIL
+    # ---------------------------------------------------------
+    @router.get("/{obj_id}", response_model=out_detail_schema)
     def get_item(obj_id: int, db: Session = Depends(get_db)):
         obj = service.get(db, obj_id)
-        return out_schema.model_validate(obj, from_attributes=True)
+        return out_detail_schema.model_validate(obj, from_attributes=True)
 
-    # ----------------------------------------------------
+    # ---------------------------------------------------------
     # CREATE
-    # ----------------------------------------------------
-    @router.post("/", response_model=out_schema)
+    # ---------------------------------------------------------
+    @router.post("/", response_model=out_detail_schema)
     def create_item(data: create_schema, db: Session = Depends(get_db)):
         obj = service.create(db, data.dict())
-        return out_schema.model_validate(obj, from_attributes=True)
+        return out_detail_schema.model_validate(obj, from_attributes=True)
 
-    # ----------------------------------------------------
+    # ---------------------------------------------------------
     # PATCH
-    # ----------------------------------------------------
-    @router.patch("/{obj_id}", response_model=out_schema)
-    def patch_item(
-        obj_id: int,
-        data: patch_schema,
-        db: Session = Depends(get_db),
-    ):
+    # ---------------------------------------------------------
+    @router.patch("/{obj_id}", response_model=out_detail_schema)
+    def patch_item(obj_id: int, data: patch_schema, db: Session = Depends(get_db)):
         obj = service.patch(db, obj_id, data.dict(exclude_unset=True))
-        return out_schema.model_validate(obj, from_attributes=True)
+        return out_detail_schema.model_validate(obj, from_attributes=True)
 
-    # ----------------------------------------------------
+    # ---------------------------------------------------------
     # DELETE
-    # ----------------------------------------------------
+    # ---------------------------------------------------------
     @router.delete("/{obj_id}")
     def delete_item(obj_id: int, db: Session = Depends(get_db)):
         return service.delete(db, obj_id)

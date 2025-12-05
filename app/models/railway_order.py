@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, Da
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
+from app.models.user import User
 
 
 class RailwayOrder(Base):
@@ -23,7 +24,7 @@ class RailwayOrder(Base):
     organization = relationship("Organization")
 
     bank_account_id = Column(Integer, ForeignKey('bank_account.id', ondelete="RESTRICT"), nullable=True, index=True)
-    bank = relationship("BankAccount")
+    bank_account = relationship("BankAccount")
 
     author_id = Column(Integer, ForeignKey('user.id', ondelete="RESTRICT"), nullable=False, index=True)
     author = relationship("User", foreign_keys=[author_id])
