@@ -10,6 +10,7 @@ class Currency(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(250), nullable=False, index=True)
+    name_code = Column(String(3), nullable=False, index=True)
     code = Column(String(3), nullable=False, index=True)
     guid_1c = Column(String(150), nullable=True)
 

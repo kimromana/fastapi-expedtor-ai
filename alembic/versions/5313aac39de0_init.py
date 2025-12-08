@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 8e90b4cdeb55
+Revision ID: 5313aac39de0
 Revises: 
-Create Date: 2025-12-05 22:17:25.136479
+Create Date: 2025-12-08 17:18:07.701908
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8e90b4cdeb55'
+revision: str = '5313aac39de0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,6 +35,7 @@ def upgrade() -> None:
     op.create_table('currency',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=250), nullable=False),
+    sa.Column('name_code', sa.String(length=3), nullable=False),
     sa.Column('code', sa.String(length=3), nullable=False),
     sa.Column('guid_1c', sa.String(length=150), nullable=True),
     sa.PrimaryKeyConstraint('id')
@@ -42,6 +43,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_currency_code'), 'currency', ['code'], unique=False)
     op.create_index(op.f('ix_currency_id'), 'currency', ['id'], unique=False)
     op.create_index(op.f('ix_currency_name'), 'currency', ['name'], unique=False)
+    op.create_index(op.f('ix_currency_name_code'), 'currency', ['name_code'], unique=False)
     op.create_table('etsng',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=250), nullable=False),
@@ -79,8 +81,8 @@ def upgrade() -> None:
     sa.Column('full_name', sa.String(length=255), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('is_superuser', sa.Boolean(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
@@ -307,7 +309,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_dislocation_wagon'), 'dislocation', ['wagon'], unique=False)
     op.create_table('expense_registration',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=500), nullable=True),
@@ -330,7 +332,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_expense_registration_organization_id'), 'expense_registration', ['organization_id'], unique=False)
     op.create_table('railway_order',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
@@ -378,7 +380,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_railway_subcode_id'), 'railway_subcode', ['id'], unique=False)
     op.create_table('specification',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('number', sa.String(length=15), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
@@ -424,7 +426,7 @@ def upgrade() -> None:
     op.create_table('railway_order_way',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('amount', sa.Integer(), nullable=True),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('summ', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
@@ -442,7 +444,7 @@ def upgrade() -> None:
     op.create_table('railway_route',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -493,7 +495,7 @@ def upgrade() -> None:
     op.create_table('specification_expense',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -522,7 +524,7 @@ def upgrade() -> None:
     op.create_table('railway_route_expense',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('rate', sa.Numeric(precision=15, scale=4), server_default='0', nullable=False),
@@ -550,7 +552,7 @@ def upgrade() -> None:
     op.create_table('specification_expense_line',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('line_number', sa.Integer(), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('price', sa.Numeric(precision=15, scale=2), server_default='0', nullable=False),
     sa.Column('comment', sa.String(length=1000), nullable=True),
     sa.Column('wagon', sa.String(length=20), nullable=True),
@@ -733,6 +735,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_etsng_id'), table_name='etsng')
     op.drop_index(op.f('ix_etsng_code'), table_name='etsng')
     op.drop_table('etsng')
+    op.drop_index(op.f('ix_currency_name_code'), table_name='currency')
     op.drop_index(op.f('ix_currency_name'), table_name='currency')
     op.drop_index(op.f('ix_currency_id'), table_name='currency')
     op.drop_index(op.f('ix_currency_code'), table_name='currency')
