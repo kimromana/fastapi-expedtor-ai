@@ -227,10 +227,10 @@ def load_demo_upr(db):
     with open(file_path, "r", encoding="utf-8-sig") as f:
         demos = json.load(f)
 
-    #load_railway_orders(db, demos.get("railway_orders", []))
-    #db.commit()
-    #load_railway_orders_way(db, demos.get("railway_orders_ways", []))
-    #db.commit()
+    load_railway_orders(db, demos.get("railway_orders", []))
+    db.commit()
+    load_railway_orders_way(db, demos.get("railway_orders_ways", []))
+    db.commit()
     load_routes(db, demos.get("railway_orders_routes", []))
     db.commit()
 
