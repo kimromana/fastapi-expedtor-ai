@@ -13,6 +13,7 @@ from app.models.contract import Contract
 from app.models.currency import Currency
 from app.models.railway_order import RailwayOrder, RailwayOrderWay
 from app.models.service_type import ServiceType
+from app.models.vat import Vat
 from app.utils.utils import find_id_by_field, find_id_by_two_fields, parse_date
 import json
 import os
@@ -208,6 +209,8 @@ def load_demo(db):
 
     load_currencies(db, demos.get("currencies", []))
     db.commit()
+    load_vats(db, demos.get("vats", []))
+    db.commit()
     load_organizations(db, demos.get("organizations", []))
     db.commit()
     load_bank_accounts(db, demos.get("bank_accounts", []))
@@ -224,10 +227,10 @@ def load_demo_upr(db):
     with open(file_path, "r", encoding="utf-8-sig") as f:
         demos = json.load(f)
 
-    load_railway_orders(db, demos.get("railway_orders", []))
-    db.commit()
-    load_railway_orders_way(db, demos.get("railway_orders_ways", []))
-    db.commit()
+    #load_railway_orders(db, demos.get("railway_orders", []))
+    #db.commit()
+    #load_railway_orders_way(db, demos.get("railway_orders_ways", []))
+    #db.commit()
     load_routes(db, demos.get("railway_orders_routes", []))
     db.commit()
 
@@ -366,7 +369,7 @@ def find_specification(db, price, weight, organization_id, contractor_id, contra
     return None
 
 def load_routes(db, routes):
-    for item in routes:
+    for item in routes[:100]:
         find_order = find_id_by_field(db, RailwayOrder, "number", item["order_"])
         if find_order is None: continue
 
@@ -378,6 +381,7 @@ def load_routes(db, routes):
         if fr_st is None: continue
         to_st = find_id_by_field(db, Station, "code", item["to_station_id"])
         if to_st is None: continue
+        if item["wagon_type_id"] == "": continue
 
         data = item.copy()
         data.pop("order_", None)
@@ -402,6 +406,12 @@ def load_currencies(db, currencies):
         if find_id_by_field(db, Currency, "code", item["code"]):
             continue
         db.add(Currency(**item))
+
+def load_vats(db, vats):
+    for item in vats:
+        if find_id_by_field(db, Vat, "guid_1c", item["guid_1c"]):
+            continue
+        db.add(Vat(**item))
 
 def load_organizations(db, organizations):
     for item in organizations:

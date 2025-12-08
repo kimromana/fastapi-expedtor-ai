@@ -26,6 +26,28 @@
 "guid_1c": "1f52a772-bf1d-11ed-b201-6479f0dd4eeb"
 }
 ],
+"vats": [
+{
+"name": "12%",
+"rate": 12,
+"guid_1c": "3a2bbca2-be32-11ed-b201-6479f0dd4eeb"
+},
+{
+"name": "0%",
+"rate": 0,
+"guid_1c": "3a2bbca3-be32-11ed-b201-6479f0dd4eeb"
+},
+{
+"name": "без НДС",
+"rate": 0,
+"guid_1c": "3a2bbca4-be32-11ed-b201-6479f0dd4eeb"
+},
+{
+"name": "без НДС - не РК",
+"rate": 0,
+"guid_1c": "3a2bbca5-be32-11ed-b201-6479f0dd4eeb"
+}
+],
 "organizations": [
 {
 "name": "SSGM Logistics",
