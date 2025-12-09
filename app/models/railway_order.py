@@ -1,11 +1,10 @@
 # =============================================================================================
 # Объект - "Заявка на предоставление транспортно экспедиторских услуг, основной объект"
 # =============================================================================================
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
-from app.models.user import User
 
 
 class RailwayOrder(Base):
