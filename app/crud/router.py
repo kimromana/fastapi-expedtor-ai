@@ -7,53 +7,7 @@ from app.schemas.auto import generate_schemas
 from app.repositories.auto import create_repository
 from app.services.auto import create_service
 from app.utils.filter_engine import apply_filters
-
-
-FILTERS_DOC = """
-### 🔍 Универсальная система фильтров (Frontend Guide)
-
-Все фильтры передаются через query-параметры.
-
----
-
-## 1. Равенство (eq)
-Простое сравнение по полю.
-Примеры:
-- `?name=Алматы`
-- `?code=270009`
-
-## 2. Частичный поиск (ILIKE)
-Поиск подстроки, регистр не важен.
-Примеры:
-- `?name=алма`
-- `?territory.name=каз`
-
-## 3. Диапазоны (min/max)
-Примеры:
-- `?id_min=10`
-- `?id_max=100`
-
-## 4. Операторы сравнения (__gt, __lt, ...)
-- `field__gt=100`
-- `field__gte=100`
-- `field__lt=500`
-- `field__lte=500`
-- `field__ne=10`
-- `field__in=100,200,300`
-
-## 5. OR-фильтры
-Через |
-- `?name|code=2700`
-
-## 6. Фильтры по связям
-Используется syntax:
-- `territory.name=Казахстан`
-
----
-
-⚙ **Пример**
-/station?name=Алма&code__gte=200000&territory.name=Казахстан&id_min=10&id_max=100
-"""
+from app.docs.filters_doc import FILTERS_DOC
 
 # ============================================================
 # CLEANER — убираем '' → None
