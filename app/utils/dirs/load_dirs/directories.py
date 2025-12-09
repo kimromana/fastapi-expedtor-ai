@@ -257,10 +257,6 @@ def load_railway_orders(db, railway_orders):
 
         data = item.copy()
         data.pop("service_type", None)
-        data.pop("organization_id", None)
-        data.pop("currency_id", None)
-        data.pop("contractor_id", None)
-        data.pop("contract_id", None)
 
         data["service_type_id"] = find_service_type
         data["organization_id"] = find_org
@@ -271,32 +267,28 @@ def load_railway_orders(db, railway_orders):
 
         data["date"] = parse_date(data["date"])
 
-        try:
-            db.add(RailwayOrder(**data))
-        except Exception as e:
-            print("Ошибка при добавлении RailwayOrder:", e)
-            print("Данные:", data)
-            continue
+        db.add(RailwayOrder(**data))
+
 
 def load_railway_orders_way(db, railway_orders_ways):
     for item in railway_orders_ways:
         find_order = find_id_by_field(db, RailwayOrder, "number", item["order_number"])
         if find_order is None: continue
 
-        from_station = find_id_by_field(db, Station, "code", item["from_station_"])
+        from_station = find_id_by_field(db, Station, "code", item["from_station_id"])
         if from_station is None: continue
 
-        to_station = find_id_by_field(db, Station, "code", item["to_station_"])
+        to_station = find_id_by_field(db, Station, "code", item["to_station_id"])
         if to_station is None: continue
 
-        find_wagon_type = find_id_by_field(db, WagonType, "name", item["wagon_type_"])
+        find_wagon_type = find_id_by_field(db, WagonType, "name", item["wagon_type_id"])
         if find_wagon_type is None:
-            new_obj = WagonType(name=item["wagon_type_"])
+            new_obj = WagonType(name=item["wagon_type_id"])
             db.add(new_obj)
             db.flush()
             find_wagon_type = new_obj.id
 
-        weight = item["weight_"]
+        weight = item["weight"]
 
         obj_order = db.query(RailwayOrder).filter(RailwayOrder.id == find_order).first()
 
@@ -319,12 +311,12 @@ def load_railway_orders_way(db, railway_orders_ways):
 
         data = item.copy()
         data.pop("order_number", None)
-        data.pop("from_station_", None)
-        data.pop("to_station_", None)
-        data.pop("wagon_type_", None)
-        data.pop("etsng_", None)
-        data.pop("gng_", None)
-        data.pop("weight_", None)
+        data.pop("from_station_id", None)
+        data.pop("to_station_id", None)
+        data.pop("wagon_type_id", None)
+        data.pop("etsng_id", None)
+        data.pop("gng_id", None)
+        data.pop("weight", None)
 
         data["order_id"] = find_order
         data["specification_id"] = find_spec
