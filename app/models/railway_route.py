@@ -51,6 +51,9 @@ class RailwayRoute(Base):
 
     expenses = relationship("RailwayRouteExpense", back_populates="railway_route", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"Route <{self.wagon} {self.container}>"
+
 
 class RailwayRouteExpense(Base):
     __tablename__ = "railway_route_expense"
@@ -79,3 +82,6 @@ class RailwayRouteExpense(Base):
 
     vat_id = Column(Integer, ForeignKey('vat.id'), nullable=True)
     vat = relationship("Vat")
+
+    def __repr__(self):
+        return f"Route expense"

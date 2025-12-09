@@ -17,5 +17,5 @@ class Operation(Base):
     vat_id = Column(Integer, ForeignKey("vat.id", ondelete="RESTRICT"), nullable=False)
     vat = relationship("Vat")
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.name}"

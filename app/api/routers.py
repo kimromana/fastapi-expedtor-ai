@@ -21,6 +21,7 @@ def is_model(obj) -> bool:
 def load_all_models():
     import app.models as models_pkg
     models = []
+    seen = set()  # защита от дублей
 
     for _, module_name, _ in pkgutil.iter_modules(models_pkg.__path__):
         module = importlib.import_module(f"{models_pkg.__name__}.{module_name}")
@@ -28,9 +29,18 @@ def load_all_models():
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
             if is_model(attr):
+
+                # уникальный ключ модели — чтобы исключить дубли
+                key = (attr.__tablename__, attr.__module__)
+
+                if key in seen:
+                    continue  # пропуск дубликата
+
+                seen.add(key)
                 models.append(attr)
 
     return models
+
 
 
 # --------------------------
