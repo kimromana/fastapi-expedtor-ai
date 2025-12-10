@@ -31,7 +31,7 @@ class RailwayRoute(Base):
     td = Column(String(100), nullable=True)
     is_empty = Column(Boolean, default=False, nullable=False)
 
-    order_id = Column(Integer, ForeignKey('railway_order.id'), nullable=False, index=True, ondelete="CASCADE")
+    order_id = Column(Integer, ForeignKey('railway_order.id', ondelete="CASCADE"), nullable=False, index=True)
     order = relationship("RailwayOrder", back_populates="routes")
 
     gng_id = Column(Integer, ForeignKey('gng.id'), index=True, onupdate='RESTRICT')
