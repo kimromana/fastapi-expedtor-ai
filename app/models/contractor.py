@@ -8,6 +8,7 @@ from app.db.base import Base
 
 class Contractor(Base):
     __tablename__ = "contractor"
+    __verbose_name__ = "Контрагент"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)

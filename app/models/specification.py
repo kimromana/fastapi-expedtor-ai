@@ -66,7 +66,7 @@ class SpecificationExpense(Base):
     comment = Column(String(1000), nullable=True)
     rate = Column(Numeric(15, 4), nullable=False, default=0, server_default='0')
 
-    specification_id = Column(Integer, ForeignKey('specification.id', ondelete='RESTRICT'), nullable=False, index=True)
+    specification_id = Column(Integer, ForeignKey('specification.id', ondelete='CASCADE'), nullable=False, index=True)
     specification = relationship("Specification", back_populates="expenses")
 
     operation_id = Column(Integer, ForeignKey('operation.id', ondelete='RESTRICT'), nullable=False, index=True)

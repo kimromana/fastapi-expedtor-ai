@@ -50,7 +50,7 @@ class ExpenseRegistrationLine(Base):
     date_from = Column(Date, nullable=True)
     td = Column(String(200), nullable=True)
 
-    expense_registration_id = Column(Integer, ForeignKey('expense_registration.id', ondelete="RESTRICT"), nullable=False)
+    expense_registration_id = Column(Integer, ForeignKey('expense_registration.id', ondelete="CASCADE"), nullable=False)
     expense_registration = relationship("ExpenseRegistration", back_populates="lines")
 
     operation_id = Column(Integer, ForeignKey('operation.id', ondelete="RESTRICT"), nullable=True)

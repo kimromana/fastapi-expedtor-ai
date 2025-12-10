@@ -31,7 +31,7 @@ class RailwayRoute(Base):
     td = Column(String(100), nullable=True)
     is_empty = Column(Boolean, default=False, nullable=False)
 
-    order_id = Column(Integer, ForeignKey('railway_order.id'), nullable=False, index=True, onupdate='RESTRICT')
+    order_id = Column(Integer, ForeignKey('railway_order.id'), nullable=False, index=True, ondelete="CASCADE")
     order = relationship("RailwayOrder", back_populates="routes")
 
     gng_id = Column(Integer, ForeignKey('gng.id'), index=True, onupdate='RESTRICT')
@@ -65,7 +65,7 @@ class RailwayRouteExpense(Base):
     comment = Column(String(1000), nullable=True)
     rate = Column(Numeric(15, 4), nullable=False, default=0, server_default='0')
 
-    railway_route_id = Column(Integer, ForeignKey('railway_route.id', ondelete="RESTRICT"), nullable=False, index=True)
+    railway_route_id = Column(Integer, ForeignKey('railway_route.id', ondelete="CASCADE"), nullable=False, index=True)
     railway_route = relationship("RailwayRoute", back_populates="expenses")
 
     operation_id = Column(Integer, ForeignKey('operation.id', ondelete="RESTRICT"), nullable=False, index=True)

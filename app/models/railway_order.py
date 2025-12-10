@@ -61,7 +61,7 @@ class RailwayOrderWay(Base):
     summ = Column(Numeric(15, 2), nullable=False, default=0, server_default='0')
     comment = Column(String(1000), nullable=True)
 
-    order_id = Column(Integer, ForeignKey('railway_order.id', ondelete="RESTRICT"), nullable=False, index=True)
+    order_id = Column(Integer, ForeignKey('railway_order.id', ondelete="CASCADE"), nullable=False, index=True)
     order = relationship("RailwayOrder", back_populates="ways")
 
     specification_id = Column(Integer, ForeignKey('specification.id', ondelete="RESTRICT"), nullable=False, index=True)
